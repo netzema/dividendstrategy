@@ -1,0 +1,11 @@
+Milestone planning:
+
+1. Getting access to all the data needed for the project
+
+2. Establish local server and write test code for milestone 1
+
+3. calculation method and implement buy signal + testcode
+
+4. construct watchlist and statistics + testcode
+
+5. set up SQLite, test programme thoroughly

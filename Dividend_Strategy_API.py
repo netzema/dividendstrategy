@@ -1,7 +1,8 @@
-from flask import Flask, request, jsonify
-from Stock import *
-
+from time import sleep
 import fear_and_greed
+from flask import Flask, jsonify
+from calculations import *
+from Stock import *
 
 app = Flask(__name__)
 
@@ -10,11 +11,6 @@ app = Flask(__name__)
 def getWL():
     return jsonify(fear_and_greed_index=list(fear_and_greed.get()),
                    watchlist=[stock.serialize() for stock in stocks])
-
-#get list of all stocks which emit a buy signal
-@app.route("/buy", methods=["GET"])
-def getBuy():
-    return jsonify([stock.name for stock in stocks if stock.signal == "buy"])
 
 #get fear and greed index
 @app.route("/fng", methods=["GET"])
@@ -57,6 +53,45 @@ def getPrice(tickersymbol):
                                     "day high": info['dayHigh'] if 'dayHigh' in info else None}])
     else:
         return "ERROR: Please enter a valid ticker symbol."
+
+#do evaluation
+@app.route("/calc", methods=["GET"])
+def calulations():
+    fng = list(fear_and_greed.get())
+    print("Now fetching data of all stocks... This might take a while. Grab a cup of coffee in the meantime.")
+    sleep(1)
+    for stock in stocks:
+        evaluate(stock.ticker, fng[0])
+        print(f"Evaluating Stock #{stocks.index(stock)} from {len(stocks)}...")
+    return jsonify(fear_and_greed_index=fng,
+                   watchlist=[stock.serialize() for stock in stocks])
+
+#get list of all stocks which emit a buy signal
+@app.route("/buy", methods=["GET"])
+def getBuy():
+    return jsonify([stock.name for stock in stocks if stock.signal == "buy"])
+
+#get a stocks' recommendation
+@app.route("/<tickersymbol>/recommendation", methods=["GET"])
+def getSignal(tickersymbol):
+    stock = getStockByTicker(tickersymbol)
+    return jsonify(Name=stock.name,
+                   Ticker=stock.ticker,
+                   Recommendation=stock.signal)
+
+#get a stocks' threshold, below which I would consider to buy
+@app.route("/<tickersymbol>/threshold", methods=["GET"])
+def getThreshold(tickersymbol):
+    stock = getStockByTicker(tickersymbol)
+    prices = evaluate(tickersymbol, list(fear_and_greed.get())[0])
+    if prices[0] > prices[1]:
+        stock.signal = "buy"
+    else:
+        stock.signal = "wait"
+    return jsonify(Name=stock.name,
+                   Ticker=stock.ticker,
+                   Threshold=prices[0],
+                   CurrentPrice=prices[1])
 
 #######################
 @app.route("/")

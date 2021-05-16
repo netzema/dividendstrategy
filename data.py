@@ -23,7 +23,7 @@ class Stock(yf.Ticker):
         self.branch = branch
         self.country = country
         self.frequency = frequency
-        self.signal = "buy"
+        self.signal = None
 
     def __repr__(self):
         return self.name
@@ -37,5 +37,5 @@ class Stock(yf.Ticker):
         'branch': self.branch,
         'country': self.country,
         'frequency': self.frequency,
-        'signal': "buy"
+        'signal': self.signal
         }

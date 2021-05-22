@@ -13,7 +13,7 @@ def evaluate(ticker, fng):
         preCovid = yf.download(ticker, start = "2019-02-01", end = "2020-02-1") # fetch data from yahoo finance
         stock = getStockByTicker(ticker) # Stock instance
 
-        base = preCovid.iloc[0]["High"] # store the price at the beginnig of the mentioned perio
+        base = preCovid.iloc[0]["High"] # store the price at the beginning of the mentioned period
         breakout = preCovid.iloc[-1]["High"] # store the last value before the crash
         step = (breakout - base) / base # calculate the factor in percent of the price development
         current = yf.download(ticker, period = "1d") # get current data of the stock
@@ -40,6 +40,37 @@ def evaluate(ticker, fng):
             stock.signal = "wait"
 
         return round(adjustedPrice,2), round(currentPrice,2)
+    except:
+        # on some days some information might still be missing on the api
+        print(f"Currently no evaluation possible for {ticker}.")
+
+def future_yield(ticker, fng, date):
+    try:
+        # get prices from a year before covid breakout
+        preCovid = yf.download(ticker, start = "2019-02-01", end = "2020-02-1") # fetch data from yahoo finance
+
+        base = preCovid.iloc[0]["High"] # store the price at the beginning of the mentioned period
+        breakout = preCovid.iloc[-1]["High"] # store the last value before the crash
+        step = (breakout - base) / base # calculate the factor in percent of the price development
+        date = date.split("-")
+        year, month, day = int(date[0]), int(date[1]), int(date[2])
+        days = datetime.date.today() - datetime.date(year, month, day) # calculate the difference in days between
+        # breakout and now
+        days = int(days.__str__().split()[0]) # convert datetime days to integer
+
+        calcPrice = breakout*(1+(step/365*days)) # calculate the price if the trend had not left off
+
+        # the higher the fng the worse time it is to buy stocks, thus we calculated an fng adjusted price
+        # at this price we would consider to buy a stock
+        if fng > 75:
+            adjustedPrice = calcPrice * 2
+        elif fng > 50:
+            adjustedPrice = calcPrice * 1.5
+        elif fng > 25:
+            adjustedPrice = calcPrice
+        else:
+            adjustedPrice = calcPrice * 0.75
+        return (ticker, adjustedPrice)
     except:
         # on some days some information might still be missing on the api
         print(f"Currently no evaluation possible for {ticker}.")

@@ -3,8 +3,11 @@ import fear_and_greed
 from flask import Flask, jsonify
 from calculations import *
 from Stock import *
+from buy_stocks import *
+from data import *
 
 app = Flask(__name__)
+
 
 #get watchlist
 @app.route("/wl", methods=["GET"])
@@ -54,7 +57,7 @@ def getPrice(tickersymbol):
     else:
         return "ERROR: Please enter a valid ticker symbol."
 
-#do evaluation
+#do evaluation and return edited watchlist
 @app.route("/calc", methods=["GET"])
 def calulations():
     fng = list(fear_and_greed.get())
@@ -65,6 +68,19 @@ def calulations():
         print(f"Evaluating Stock #{stocks.index(stock)} from {len(stocks)}...")
     return jsonify(fear_and_greed_index=fng,
                    watchlist=[stock.serialize() for stock in stocks])
+
+#do evaluation
+@app.route("/calc/<date>", methods=["GET"])
+def future_calculations(date):
+    fng = list(fear_and_greed.get())
+    print("Now fetching data of all stocks... This might take a while. Grab a cup of coffee in the meantime.")
+    sleep(1)
+    result = []
+    for stock in stocks:
+        result.append(future_yield(stock.ticker, fng[0], date))
+        print(f"Evaluating Stock #{stocks.index(stock)} from {len(stocks)}...")
+    return jsonify(fear_and_greed_index=fng,
+                   trend=result)
 
 #get list of all stocks which emit a buy signal
 @app.route("/buy", methods=["GET"])
@@ -93,6 +109,35 @@ def getThreshold(tickersymbol):
                    Threshold=prices[0],
                    CurrentPrice=prices[1])
 
+#buy a stock (parameters: ticker symbol, price, amount
+@app.route("/buy/<tickersymbol>/<price>/<amount>", methods=["POST"])
+def buyStock(tickersymbol, price, amount):
+    trans = buy_stock(tickersymbol, price, amount)
+    return jsonify(transactions= trans)
+
+#get the dividends received of a bought stock
+@app.route("/<tickersymbol>/div", methods=["GET"])
+def getDivs(tickersymbol):
+    s = getStockByTicker(tickersymbol)
+    return jsonify(s.calc_dividends())
+
+#get all dividends which will be received this year
+@app.route("/dividends", methods=["GET"])
+def getAllDivs():
+    return jsonify(calc_all_dividends())
+
+#delete a transaction from the securities account
+@app.route("/delete/<tickersymbol>/<int:transaction_id>", methods=["DELETE"])
+def delTrans(tickersymbol, transaction_id):
+    s = getStockByTicker(tickersymbol)
+    s.deleteTransaction(transaction_id)
+    return s.transactions
+
+#display all transactions
+@app.route("/transactions", methods=["GET"])
+def getAllTransactions():
+    return jsonify(transactions = securities_acc)
+
 #######################
 @app.route("/")
 def index():
@@ -104,7 +149,7 @@ def index():
 def add_headers(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Headers'] =  "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
-    response.headers['Access-Control-Allow-Methods']=  "POST, GET, PUT, DELETE"
+    response.headers['Access-Control-Allow-Methods']=  "POST, GET, PUT, DELETE, PATCH"
     return response
 
 if __name__ == "__main__":

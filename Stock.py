@@ -1,8 +1,14 @@
 from data import *
 import wbdata
-
+from data import *
 # store all stocks in a list
-stocks = [Stock(df['Name'][i], str(df['Ticker'][i]), df['ISIN'][i], float(df['Div. Yield'][i][:-1]), df['Branche'][i], df['Country'][i], int(df['Frequency'][i][-1])) for i in range(len(df))]
+stocks = [Stock(df['Name'][i],
+                str(df['Ticker'][i]),
+                df['ISIN'][i],
+                float(df['Div. Yield'][i][:-1]),
+                df['Branche'][i],
+                df['Country'][i],
+                int(df['Frequency'][i][-1])) for i in range(len(df))]
 
 # filter counties with high withholding tax
 stocks = [s for s in stocks if s.country not in ["DE1", "FR1", "CH1"]]

@@ -2,6 +2,7 @@ import pandas as pd
 import yfinance as yf
 from pathlib import Path
 
+
 # reading file in
 # pathlib for efficient use of file paths
 data_path = Path()
@@ -11,6 +12,9 @@ df = pd.read_excel(file)
 
 #df = pd.read_excel (r'C:\Users\netzl\OneDrive\Dokumente\Studium\Informatics Krems\2nd semester\Programming 2\INF-SS21-ProgrammingII-main\Exercise2\Stocks on Watchlist.xlsx')
 #print (df)
+
+# set up securites account
+securities_acc = {}
 
 # define Stock class inheriting yf.Ticker
 class Stock(yf.Ticker):
@@ -24,6 +28,7 @@ class Stock(yf.Ticker):
         self.country = country
         self.frequency = frequency
         self.signal = None
+        self.transactions = {}
 
     def __repr__(self):
         return self.name
@@ -37,5 +42,21 @@ class Stock(yf.Ticker):
         'branch': self.branch,
         'country': self.country,
         'frequency': self.frequency,
-        'signal': self.signal
+        'signal': self.signal,
+        'transactions': self.transactions
         }
+
+    def deleteTransaction(self, _id):
+        if _id in self.transactions:
+            self.transactions.pop(_id)
+            del securities_acc[_id]
+            return self.name, self.transactions
+        else:
+            print("Transaction for this stock does not exist.")
+
+    def calc_dividends(self):
+        div_sum = 0
+        if len(self.transactions) > 0:
+            for i, t in self.transactions.items():
+                div_sum += t["number_of_shares"] * t["dividend per share"]
+        return self.ticker, div_sum

@@ -8,12 +8,12 @@ from pathlib import Path
 data_path = Path()
 file = data_path / "Stocks on Watchlist.xlsx"
 df = pd.read_excel(file)
-# All stocks with an * in their name are dividend aristrocates. These companies have been increasing their dividends for 25 years in a row.
+# All stocks with an * in their name are dividend aristrocates.
+# These companies have been increasing their dividends for 25 years in a row.
 
-#df = pd.read_excel (r'C:\Users\netzl\OneDrive\Dokumente\Studium\Informatics Krems\2nd semester\Programming 2\INF-SS21-ProgrammingII-main\Exercise2\Stocks on Watchlist.xlsx')
-#print (df)
-
-# set up securites account
+# set up securities account
+# transactions are stored within it
+# it interacts with the database file
 securities_acc = {}
 
 # define Stock class inheriting yf.Ticker
@@ -27,8 +27,7 @@ class Stock(yf.Ticker):
         self.branch = branch
         self.country = country
         self.frequency = frequency
-        self.signal = None
-        self.transactions = {}
+        self.signal = None # will be determined by calculation, must be updated regularly
 
     def __repr__(self):
         return self.name
@@ -42,21 +41,5 @@ class Stock(yf.Ticker):
         'branch': self.branch,
         'country': self.country,
         'frequency': self.frequency,
-        'signal': self.signal,
-        'transactions': self.transactions
+        'signal': self.signal
         }
-
-    def deleteTransaction(self, _id):
-        if _id in self.transactions:
-            self.transactions.pop(_id)
-            del securities_acc[_id]
-            return self.name, self.transactions
-        else:
-            print("Transaction for this stock does not exist.")
-
-    def calc_dividends(self):
-        div_sum = 0
-        if len(self.transactions) > 0:
-            for i, t in self.transactions.items():
-                div_sum += t["number_of_shares"] * t["dividend per share"]
-        return self.ticker, div_sum

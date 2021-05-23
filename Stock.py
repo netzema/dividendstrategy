@@ -1,7 +1,8 @@
-from data import *
 import wbdata
+
 from data import *
-# store all stocks in a list
+
+# store all stocks in a list accessing the read in pandas dataframe
 stocks = [Stock(df['Name'][i],
                 str(df['Ticker'][i]),
                 df['ISIN'][i],
@@ -10,96 +11,59 @@ stocks = [Stock(df['Name'][i],
                 df['Country'][i],
                 int(df['Frequency'][i][-1])) for i in range(len(df))]
 
-# filter counties with high withholding tax
+# filter countries with high withholding tax
 stocks = [s for s in stocks if s.country not in ["DE1", "FR1", "CH1"]]
-rate_current = wbdata.get_data("FP.CPI.TOTL.ZG", country="AUT")[0]["value"]
-rate_lastyear = wbdata.get_data("FP.CPI.TOTL.ZG", country="AUT")[1]["value"]
-inflation_rate = rate_current if rate_current is not None else rate_lastyear
+
+# only evaluate stocks where the dividend yield is higher than the current inflation rate
+rate_current = wbdata.get_data("FP.CPI.TOTL.ZG", country="AUT")[0]["value"]  # store inflation rate
+rate_lastyear = wbdata.get_data("FP.CPI.TOTL.ZG", country="AUT")[1]["value"]  # store last year's rate
+inflation_rate = rate_current if rate_current is not None else rate_lastyear  # in case this year's has not been released
 stocks = [s for s in stocks if "*" in s.name and s.divyield > inflation_rate]
 
-# store all tickersymbols for error handling
+# store all ticker symbols in a list
 tickersymbols = [s.ticker for s in stocks]
+
 
 # function to get a stock knowing its ticker
 def getStockByTicker(tickersymbol):
     tickersymbol = tickersymbol.upper()
     if tickersymbol in tickersymbols:
+        # gets a list of all stocks with given ticker symbol, but ticker symbol is unique for every stock
+        # so we get list of len = 1 and access the first element
         return list(filter(lambda x: x.ticker == tickersymbol, stocks))[0]
-    else: return None
+    else:
+        return "Ticker not found."
 
-#print(stocks)
+def getStockInfo(tickersymbol):
+    stock = getStockByTicker(tickersymbol)
+    if stock is not None:
+        info = stock.info
+        return {"name": stock.name,
+            "ticker": stock.ticker,
+            "ISIN": stock.ISIN,
+            "Dividend Yield": stock.divyield,
+            "branch": stock.branch,
+            "country": stock.country,
+            "payout frequency": stock.frequency,
+            "signal": stock.signal,
+            "dividend per share": info['lastDividendValue'] if 'lastDividendValue' in info else None,
+            "52-week high": info['fiftyTwoWeekHigh'] if 'fiftyTwoWeekHigh' in info else None,
+            "52-week low": info['fiftyTwoWeekLow'] if 'fiftyTwoWeekLow' in info else None,
+            "ask price": info['ask'] if 'ask' in info else None,
+            "bid price": info['bid'] if 'bid' in info else None,
+            "day high": info['dayHigh'] if 'dayHigh' in info else None
+            }
+    else:
+        return "ERROR: Please enter a valid ticker symbol."
 
-# get info of certain stock knowing its ticker
-#ticker = "MSFT"
-#stock = list(filter(lambda x: x.ticker == ticker, stocks))[0]
-#stock.info
-
-# get dividend payed out per share
-#stock.info['lastDividendValue']
-
-# 52-week high
-#stock.info['fiftyTwoWeekHigh']
-
-# 52-week low
-#stock.info['fiftyTwoWeekLow']
-
-# # get historical market data
-#hist = stock.history(period="max")
-
-# get open, high, low etc from certain date
-#hist.query("Date == '2019-05-08'")
-# get open, high, low etc from certain time period
-#hist.query("'2018-05-08' <= Date <= '2019-05-08'")
-
-# extract the price of that period
-#hist.query("Date == '2019-05-08'")['High']
-#hist.query("'2018-05-08' <= Date <= '2019-05-08'")['High']
-
-### other useful methods ###
-
-# # show actions (dividends, splits)
-# stocks[0].actions
-#
-# # show dividends
-# stocks[0].dividends
-#
-# # show splits
-# stocks[0].splits
-#
-# # show financials
-# stocks[0].financials
-# stocks[0].quarterly_financials
-#
-# # show major holders
-# stocks[0].major_holders
-#
-# # show institutional holders
-# stocks[0].institutional_holders
-#
-# # show balance sheet
-# stocks[0].balance_sheet
-# stocks[0].quarterly_balance_sheet
-#
-# # show cashflow
-# stocks[0].cashflow
-# stocks[0].quarterly_cashflow
-#
-# # show earnings
-# stocks[0].earnings
-# stocks[0].quarterly_earnings
-#
-# # show sustainability
-# stocks[0].sustainability
-#
-# # show analysts recommendations
-# stocks[0].recommendations
-#
-# # show next event (earnings, etc)
-# stocks[0].calendar
-#
-# # show ISIN code - *experimental*
-# # ISIN = International Securities Identification Number
-# stocks[0].isin
-#
-# # show options expirations
-# stocks[0].options
+def getPrice(tickersymbol):
+    stock = getStockByTicker(tickersymbol)
+    if stock != None:
+        info = stock.info
+        return {"name": stock.name,
+                "ticker": stock.ticker,
+                "ask price": info['ask'] if 'ask' in info else None,
+                "bid price": info['bid'] if 'bid' in info else None,
+                "day high": info['dayHigh'] if 'dayHigh' in info else None}
+    else:
+        return "ERROR: Please enter a valid ticker symbol."

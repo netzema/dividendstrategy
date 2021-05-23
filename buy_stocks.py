@@ -3,28 +3,33 @@ import datetime
 import uuid
 from data import *
 
+# function to add a transaction of a stock to securities_acc
 def buy_stock(ticker, price, amount):
     s = getStockByTicker(ticker)
-    divpershare = s.info['lastDividendValue']
-    date = datetime.date.today().__str__()
-    _id = uuid.uuid4().int
-    s.transactions[_id] = {"date": date, "price": float(price), "number_of_shares": float(amount), "dividend per share": float(divpershare)}
-    securities_acc[_id] = {"stock": s.name, "date": date, "price": float(price), "number_of_shares": float(amount), "dividend per share": float(divpershare)}
-    return s.transactions
+    divpershare = s.info['lastDividendValue'] # store dividend per share
+    date = datetime.date.today().__str__() # get date
+    _id = uuid.uuid4().int # construct unique id
+    # add transaction to securities account
+    securities_acc[_id] = {"stock": s.name, "date": date, "price": float(price), "number_of_shares": float(amount),
+                           "dividend per share": float(divpershare)}
+    return securities_acc
 
+# function to calculate the sum of all dividends one would receive in a year
 def calc_all_dividends():
     div_sum = 0
-    for s in stocks:
-        if len(s.transactions) > 0:
-            for i, t in s.transactions.items():
-                div_sum += t["number_of_shares"] * t["dividend per share"]
-    return f"Sum of all dividends: {div_sum}"
+    # loop through transactions
+    for t in securities_acc:
+        trans = securities_acc[t] # access transaction by id
+        # multiply number of shares by dividend per share
+        div_sum += trans["number_of_shares"] * trans["dividend per share"]
+    return f"Sum of all dividends: {round(div_sum,2)}"
 
-
-
-# buy_stock("ben", 42.231, 100)
-# buy_stock("ben", 39.0012, 300)
-# buy_stock("abbv", 111.642, 100)
-# calc_dividends("ben")
-# calc_dividends("abbv")
-# calc_all_dividends()
+# calculate dividends paid by one given company
+def calc_dividends(ticker):
+    div_sum = 0
+    s = getStockByTicker(ticker)
+    for t in securities_acc:
+        trans = securities_acc[t]
+        if trans["stock"] == s.name: # check if the name is the same
+            div_sum += trans["number_of_shares"] * trans["dividend per share"]
+    return ticker, round(div_sum,2)

@@ -50,6 +50,7 @@ def evaluate(ticker, fng):
     except:
         # on some days some information might still be missing on the api
         print(f"Currently no evaluation possible for {ticker}.")
+        return (0,0)
 
 def future_yield(ticker, fng, date):
     # map the calculation schema to any point in the future (necessarily post breakout)
@@ -82,6 +83,7 @@ def future_yield(ticker, fng, date):
     except:
         # on some days some information might still be missing on the api
         print(f"Currently no evaluation possible for {ticker}.")
+        return (ticker, 0)
 
 # the next function is some additional method to evaluate stocks, which is not made up by myself
 # it is just a little extra, but not needed for the project itself.

@@ -54,5 +54,8 @@ def save_db():
 def deleteEntry(transaction_id):
     # delete from transactions records and also from the database table
     del securities_acc[transaction_id]
-    cursorObj.execute("DELETE FROM transactions WHERE id = ?", (str(transaction_id),))
+    try:
+        cursorObj.execute("DELETE FROM transactions WHERE id = ?", (str(transaction_id),))
+    except NameError:
+        print("No open data base")
     return securities_acc

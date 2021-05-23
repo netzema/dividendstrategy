@@ -7,9 +7,9 @@ def test_serialize():
         stock = choice(stocks)
         out = stock.serialize()
         assert list(out.keys()) == ['name','ticker','ISIN','dividend yield','branch','country','frequency', 'signal']
-        assert list(out.values()) == [stock.name,stock.ticker,stock.ISIN,stock.divyield,stock.branch,stock.country,stock.frequency,"buy"]
+        assert list(out.values()) == [stock.name,stock.ticker,stock.ISIN,stock.divyield,stock.branch,stock.country,stock.frequency,stock.signal]
 
 def test_df():
-    assert len(df) == 420
+    assert len(df) == 409
     assert ('Name' and 'Branche' and 'Country' and 'ISIN' and 'Frequency' and 'Div. Yield' and 'Links' and 'Ticker') in list(df.columns)
 

@@ -27,7 +27,7 @@ class Stock(yf.Ticker):
         self.branch = branch
         self.country = country
         self.frequency = frequency
-        self.signal = None # will be determined by calculation, must be updated regularly
+        self.signal = "to be determined" # will be determined by calculation, must be updated regularly
 
     def __repr__(self):
         return self.name

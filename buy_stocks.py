@@ -6,9 +6,10 @@ from data import *
 # function to add a transaction of a stock to securities_acc
 def buy_stock(ticker, price, amount):
     s = getStockByTicker(ticker)
-    divpershare = s.info['lastDividendValue']  # store dividend per share
+    info = s.info
+    divpershare = info['lastDividendValue']  # store dividend per share
     if divpershare is None:
-        divpershare = s.divyield * s.info["ask"]
+        divpershare = s.divyield/100 * info["ask"]
     date = datetime.date.today().__str__() # get date
     _id = uuid.uuid4().int # construct unique id
     # add transaction to securities account

@@ -34,8 +34,6 @@ def conn_db():
 
 
 def save_db():
-    global conn
-    global cursorObj
     # connection is still open
     for t in securities_acc:
         try:  # add only new transactions to the database
@@ -53,9 +51,12 @@ def save_db():
 
 def deleteEntry(transaction_id):
     # delete from transactions records and also from the database table
-    del securities_acc[transaction_id]
+    if transaction_id in securities_acc:
+        del securities_acc[transaction_id]
+    else:
+        return f"No transaction with id {transaction_id}."
     try:
         cursorObj.execute("DELETE FROM transactions WHERE id = ?", (str(transaction_id),))
-    except NameError:
-        print("No open data base")
+    except:
+        return "Deleted from temporary storage, but no open data base found."
     return securities_acc

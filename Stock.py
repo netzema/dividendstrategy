@@ -46,7 +46,7 @@ def getStockInfo(tickersymbol):
             "country": stock.country,
             "payout frequency": stock.frequency,
             "signal": stock.signal,
-            "dividend per share": info['lastDividendValue'] if 'lastDividendValue' in info else None,
+            "dividend per share": info['lastDividendValue'] if info['lastDividendValue'] is not None else info['ask'] * (stock.divyield/100),
             "52-week high": info['fiftyTwoWeekHigh'] if 'fiftyTwoWeekHigh' in info else None,
             "52-week low": info['fiftyTwoWeekLow'] if 'fiftyTwoWeekLow' in info else None,
             "ask price": info['ask'] if 'ask' in info else None,

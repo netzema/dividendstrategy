@@ -27,7 +27,13 @@ class Stock(yf.Ticker):
         self.branch = branch
         self.country = country
         self.frequency = frequency
-        self.signal = "to be determined" # will be determined by calculation, must be updated regularly
+        self.signal = "To be determined" # will be determined by calculation, must be updated regularly
+        self.currentDiv = None
+        self.lastDiv = None
+        self.divGrowth = "To be determined"
+        self.five_year_avg_growth = "To be determined"
+        self.growths = "To be determined"
+        self.continuity = "To be determined"
 
     def __repr__(self):
         return self.name
@@ -41,5 +47,49 @@ class Stock(yf.Ticker):
         'branch': self.branch,
         'country': self.country,
         'frequency': self.frequency,
-        'signal': self.signal
+        'signal': self.signal,
+        'current dividend': self.currentDiv,
+        'previous dividend': self.lastDiv,
+        'dividend growth': self.divGrowth,
+        'five year average growth': self.five_year_avg_growth,
+        'Five year dividend growths': self.growths
         }
+
+    def calcDivGrowth(self):
+        try:
+            divs = self.actions["Dividends"]["2015":"2021"]
+            self.currentDiv = float(sum(divs["2020"]))
+            self.lastDiv = float(sum(divs["2019"]))
+
+            if isinstance(self.currentDiv, float) and isinstance(self.lastDiv, float):
+                self.divGrowth = (self.currentDiv - self.lastDiv) * 100 /  self.lastDiv
+            else:
+                self.divGrowth = 0
+            dividends_five_years = self.actions["2015":"2020"]["Dividends"]
+            #divsum = sum(dividends_five_years)
+            #len_divs = len(dividends_five_years)
+            #five_year_average = divsum / len_divs
+            growths = []
+            growths.append(
+                (sum(dividends_five_years["2016"]) - sum(dividends_five_years["2015"])) * 100 / sum(dividends_five_years["2015"]))
+            growths.append(
+                (sum(dividends_five_years["2017"]) - sum(dividends_five_years["2016"])) * 100 / sum(dividends_five_years["2016"]))
+            growths.append(
+                (sum(dividends_five_years["2018"]) - sum(dividends_five_years["2017"])) * 100 / sum(dividends_five_years["2017"]))
+            growths.append(
+                (sum(dividends_five_years["2019"]) - sum(dividends_five_years["2018"])) * 100 / sum(dividends_five_years["2018"]))
+            growths.append(
+                (sum(dividends_five_years["2020"]) - sum(dividends_five_years["2019"])) * 100 / sum(dividends_five_years["2019"]))
+            self.growths = growths
+            five_year_avg_growth = sum(growths) / len(growths)
+            self.five_year_avg_growth = five_year_avg_growth
+            self.continuity = all([False if d < 0 else True for d in self.growths])
+            print(f"Success for {self.name}")
+        except Exception as e:
+            print(e, type(e).__name__)
+            print(f"No response for {self.name}")
+            self.five_year_avg_growth = 0
+            self.growths = []
+            self.currentDiv = 0
+            self.lastDiv = 0
+            self.divGrowth = 0

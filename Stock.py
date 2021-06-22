@@ -1,5 +1,6 @@
 import wbdata
-
+from os import path
+import pickle
 from data import *
 
 # store all stocks in a list accessing the read in pandas dataframe
@@ -13,12 +14,18 @@ stocks = [Stock(df['Name'][i],
 
 # filter countries with high withholding tax
 stocks = [s for s in stocks if s.country not in ["DE1", "FR1", "CH1"]]
-
-# only evaluate stocks where the dividend yield is higher than the current inflation rate
-rate_current = wbdata.get_data("FP.CPI.TOTL.ZG", country="AUT")[0]["value"]  # store inflation rate
-rate_lastyear = wbdata.get_data("FP.CPI.TOTL.ZG", country="AUT")[1]["value"]  # store last year's rate
-inflation_rate = rate_current if rate_current is not None else rate_lastyear  # in case this year's has not been released
-stocks = [s for s in stocks if "*" in s.name and s.divyield > inflation_rate]
+def filter_Stocks(stockslist):
+    # only evaluate stocks where
+    # - the dividend growth is higher than the current inflation rate
+    # - the five year average dividend growth if higher than the current inflation rate
+    # - and there has been a dividend continuity of at least 5 years
+    rate_current = wbdata.get_data("FP.CPI.TOTL.ZG", country="AUT")[0]["value"]  # store inflation rate
+    rate_lastyear = wbdata.get_data("FP.CPI.TOTL.ZG", country="AUT")[1]["value"]  # store last year's rate
+    inflation_rate = rate_current if rate_current is not None else rate_lastyear  # in case this year's has not been released
+    [stock.calcDivGrowth() for stock in stockslist]
+    watchlist = list(filter(lambda x: x.divGrowth and x.five_year_avg_growth and x.divGrowth >= inflation_rate and x.five_year_avg_growth >= inflation_rate
+                       and x.continuity, stockslist))
+    return watchlist
 
 # store all ticker symbols in a list
 tickersymbols = [s.ticker for s in stocks]

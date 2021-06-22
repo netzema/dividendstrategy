@@ -1,5 +1,4 @@
 from flask import Flask, jsonify
-
 from buy_stocks import *
 from calculations import *
 from dbm import *
@@ -11,6 +10,7 @@ app = Flask(__name__)
 def getWL():
     return jsonify(fear_and_greed_index=list(fear_and_greed.get()),
                    watchlist=[stock.serialize() for stock in stocks])
+
 
 #get fear and greed index
 @app.route("/fng", methods=["GET"])
@@ -31,13 +31,13 @@ def prices(tickersymbol):
 @app.route("/calc", methods=["GET"])
 def calulations():
     fng = list(fear_and_greed.get())
-    calculate_watchlist()
+    calculate_watchlist(stocks)
     return jsonify(fear_and_greed_index=fng,
                    watchlist=[stock.serialize() for stock in stocks])
 
 #do evaluation
 @app.route("/calc/<date>", methods=["GET"])
-def future_calculations(date):
+def future_calculations(date, stocks):
     fng, result = future_calculation_of_stocks(date)
     return jsonify(fng=fng, result=result)
 

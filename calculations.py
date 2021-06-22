@@ -130,22 +130,22 @@ def getGrahamNumber(ticker, fng):
             "Current value": currentPrice
             }
 
-def calculate_watchlist():
+def calculate_watchlist(watchlist):
     fng = list(fear_and_greed.get())
     print("Now fetching data of all stocks... This might take a while. Grab a cup of coffee in the meantime.")
     sleep(1)
-    for stock in stocks:
+    for stock in watchlist:
         evaluate(stock.ticker, fng[0])
-        print(f"Evaluating Stock #{stocks.index(stock)} from {len(stocks)-1}...")
+        print(f"Evaluating Stock #{watchlist.index(stock)} from {len(watchlist)-1}...")
 
-def future_calculation_of_stocks(date):
+def future_calculation_of_stocks(date, watchlist):
     fng = list(fear_and_greed.get())
     print("Now fetching data of all stocks... This might take a while. Grab a cup of coffee in the meantime.")
     sleep(1)
     result = []
-    for stock in stocks:
+    for stock in watchlist:
         result.append(future_yield(stock.ticker, fng[0], date))
-        print(f"Evaluating Stock #{stocks.index(stock)} from {len(stocks)}...")
+        print(f"Evaluating Stock #{watchlist.index(stock)} from {len(watchlist)}...")
     return fng, result
 
 def calculate_threshold(tickersymbol):
